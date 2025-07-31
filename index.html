@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RSA Encryption / Decryption</title>
+
+  <!-- Forge for RSA -->
+  <script src="https://cdn.jsdelivr.net/npm/node-forge@1.3.1/dist/forge.min.js"></script>
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Monoton&display=swap" rel="stylesheet" />
+
+  <style>
+    /* === Background and Particle Animation === */
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #1e1e1e;
+    }
+
+    .page-bg, .animation-wrapper {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .page-bg {
+      background: #1e1e1e;
+      filter: grayscale(100%);
+      z-index: -2;
+    }
+
+    .particle, .particle:after {
+      background: transparent;
+      content: "";
+      position: absolute;
+    }
+
+    .particle:after {
+      top: 2560px;
+    }
+
+    .particle-1, .particle-1:after {
+      height: 2px;
+      width: 2px;
+      border-radius: 50%;
+    }
+
+    .particle-2, .particle-2:after {
+      height: 3px;
+      width: 3px;
+      border-radius: 50%;
+    }
+
+    .particle-3:after {
+      height: 3px;
+      width: 3px;
+      border-radius: 50%;
+    }
+
+    .particle-4, .particle-4:after {
+      height: 1px;
+      width: 1px;
+      border-radius: 50%;
+    }
+
+    .particle-1 {
+      animation: animParticle 60s linear infinite;
+      box-shadow:
+        23px 2061px #fff, 708px 2282px #fff, 1867px 692px #fff,
+        1433px 2357px #fff, 2229px 1612px #fff, 654px 1811px #fff;
+    }
+
+    .particle-1:after {
+      box-shadow:
+        1221px 1914px #fff, 2088px 511px #fff, 1614px 1360px #fff,
+        2055px 779px #fff, 437px 1858px #fff;
+    }
+
+    .particle-2 {
+      animation: animParticle 120s linear infinite;
+      box-shadow:
+        884px 1354px #fff, 591px 2243px #fff, 1304px 1934px #fff,
+        2123px 169px #fff, 1522px 1022px #fff;
+    }
+
+    .particle-2:after {
+      box-shadow:
+        188px 2460px #fff, 951px 2244px #fff, 1201px 332px #fff;
+    }
+
+    .particle-3:after {
+      box-shadow:
+        2351px 2514px #fff, 1111px 1801px #fff, 642px 711px #fff;
+    }
+
+    .particle-4 {
+      animation: animParticle 200s linear infinite;
+      box-shadow:
+        144px 2333px #fff, 1974px 1901px #fff, 186px 1593px #fff;
+    }
+
+    .particle-4:after {
+      box-shadow:
+        1664px 1771px #fff, 154px 1941px #fff, 1974px 182px #fff;
+    }
+
+    @keyframes animParticle {
+      from {
+        transform: translateY(0px);
+      }
+      to {
+        transform: translateY(-2560px);
+      }
+    }
+
+    /* === Main UI === */
+    .container {
+      position: relative;
+      z-index: 2;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+      width: 90%;
+      max-width: 800px;
+      color: #fff;
+      box-sizing: border-box;
+    }
+
+    h2 {
+      font-family: 'Monoton', cursive;
+      color: #fff;
+      font-size: 2.2rem;
+      text-align: center;
+      margin-bottom: 30px;
+      animation: neon1 1.5s ease-in-out infinite alternate;
+    }
+
+    @keyframes neon1 {
+      from {
+        text-shadow: 0 0 10px #fff, 0 0 20px #fff,
+                     0 0 30px #fff, 0 0 40px #FF1177,
+                     0 0 70px #FF1177, 0 0 80px #FF1177,
+                     0 0 100px #FF1177, 0 0 150px #FF1177;
+      }
+      to {
+        text-shadow: 0 0 5px #fff, 0 0 10px #fff,
+                     0 0 15px #fff, 0 0 20px #FF1177,
+                     0 0 35px #FF1177, 0 0 40px #FF1177,
+                     0 0 50px #FF1177, 0 0 75px #FF1177;
+      }
+    }
+
+    label {
+      font-weight: 600;
+      color: #ccc;
+      margin-bottom: 5px;
+      display: block;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      resize: vertical;
+      margin-bottom: 20px;
+      box-sizing: border-box;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: #00bcd4;
+    }
+
+    button {
+      padding: 12px 24px;
+      margin-right: 12px;
+      background-color: #00bcd4;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #00acc1;
+    }
+
+    .output-label {
+      font-weight: bold;
+      color: #ccc;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Particle Background -->
+  <div class="page-bg"></div>
+  <div class="animation-wrapper">
+    <div class="particle particle-1"></div>
+    <div class="particle particle-2"></div>
+    <div class="particle particle-3"></div>
+    <div class="particle particle-4"></div>
+  </div>
+
+  <!-- RSA Tool UI -->
+  <div class="container">
+    <h2>🔐 RSA Encryption / Decryption</h2>
+
+    <label for="message">Message:</label>
+    <textarea id="message" rows="4" placeholder="Enter message to encrypt..."></textarea>
+
+    <button onclick="encryptMessage()">Encrypt</button>
+    <button onclick="decryptMessage()">Decrypt</button>
+
+    <label class="output-label">Encrypted Message:</label>
+    <textarea id="encrypted" rows="4" readonly></textarea>
+
+    <label class="output-label">Decrypted Message:</label>
+    <textarea id="decrypted" rows="4" readonly></textarea>
+  </div>
+
+  <!-- JavaScript -->
+  <script>
+    let publicKey, privateKey;
+
+    // Generate keypair
+    forge.pki.rsa.generateKeyPair({ bits: 2048, workers: -1 }, function (err, keypair) {
+      if (err) {
+        alert("Key generation failed: " + err);
+        return;
+      }
+      publicKey = keypair.publicKey;
+      privateKey = keypair.privateKey;
+    });
+
+    function encryptMessage() {
+      const msg = document.getElementById("message").value;
+      if (!msg) return alert("Please enter a message.");
+      const encrypted = publicKey.encrypt(msg, 'RSAES-PKCS1-V1_5');
+      const b64 = forge.util.encode64(encrypted);
+      document.getElementById("encrypted").value = b64;
+    }
+
+    function decryptMessage() {
+      const b64 = document.getElementById("encrypted").value;
+      if (!b64) return alert("Please provide an encrypted message.");
+      try {
+        const encrypted = forge.util.decode64(b64);
+        const decrypted = privateKey.decrypt(encrypted, 'RSAES-PKCS1-V1_5');
+        document.getElementById("decrypted").value = decrypted;
+      } catch (e) {
+        alert("Decryption failed.");
+      }
+    }
+  </script>
+</body>
+</html>
